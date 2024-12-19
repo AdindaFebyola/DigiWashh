@@ -1,41 +1,68 @@
 <?php
 
-// app/Http/Controllers/AuthController.php
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+
+    public function showLoginForm()
+    {
+        return view('auth.login');
+    }
+
+
     public function login(Request $request)
     {
         $request->validate([
-            'username' => 'required|string',
-            'password' => 'required|string',
+            'email' => 'required|email',
+            'password' => 'required|min:6',
         ]);
 
-        $user = User::where('username', $request->username)->first();
+        $credentials = $request->only('email', 'password');
 
-        if ($user && Hash::check($request->password, $user->password)) {
-            $token = $user->createToken('AuthToken')->accessToken;
-            return response()->json(['token' => $token, 'user' => $user]);
+
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+            return response()->json([
+                'success' => true,
+                'message' => 'Login berhasil',
+                'user' => $user
+            ]);
         }
 
-        return response()->json(['message' => 'Unauthorized'], 401);
+        return response()->json([
+            'success' => false,
+            'message' => 'Login gagal, periksa kembali email dan password'
+        ], 401);
     }
 
-    public function logout(Request $request)
+    public function logout()
     {
-        $request->user()->token()->revoke();
-        return response()->json(['message' => 'Logged out successfully']);
+        Auth::logout();
+        return response()->json([
+            'success' => true,
+            'message' => 'Logout berhasil'
+        ]);
     }
 
     public function dashboard()
     {
-        return response()->json(['message' => 'Welcome to Dashboard']);
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Selamat datang di dashboard',
+            'user' => $user
+        ]);
     }
 }
-

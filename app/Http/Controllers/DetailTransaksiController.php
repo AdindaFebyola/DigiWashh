@@ -1,6 +1,5 @@
 <?php
 
-// app/Http/Controllers/DetailTransaksiController.php
 namespace App\Http\Controllers;
 
 use App\Models\DetailTransaksi;
@@ -10,42 +9,69 @@ class DetailTransaksiController extends Controller
 {
     public function index()
     {
-        // Ambil semua data detail transaksi dengan relasi transaksi dan paket
-        return DetailTransaksi::with(['transaksi', 'paket'])->get();
+        $detailTransaksis = DetailTransaksi::all();
+        return response()->json([
+            'success' => true,
+            'message' => 'List Detail Transaksi',
+            'data' => $detailTransaksis
+        ]);
     }
 
     public function store(Request $request)
     {
-        // Validasi input
-        $request->validate([
-            'id_transaksi' => 'required|exists:transaksi,id_transaksi',
-            'id_paket' => 'required|exists:paket,id_paket',
-            'qty' => 'required|integer',
-            'subtotal' => 'required|integer',
+        $detailTransaksi = DetailTransaksi::create($request->all());
+        return response()->json([
+            'success' => true,
+            'message' => 'Detail Transaksi berhasil ditambahkan',
+            'data' => $detailTransaksi
         ]);
+    }
 
-        // Simpan detail transaksi
-        return DetailTransaksi::create($request->all());
+    public function show($id)
+    {
+        $detailTransaksi = DetailTransaksi::find($id);
+        if ($detailTransaksi) {
+            return response()->json([
+                'success' => true,
+                'data' => $detailTransaksi
+            ]);
+        }
+        return response()->json([
+            'success' => false,
+            'message' => 'Detail Transaksi tidak ditemukan'
+        ], 404);
     }
 
     public function update(Request $request, $id)
     {
-        // Validasi input
-        $request->validate([
-            'id_transaksi' => 'required|exists:transaksi,id_transaksi',
-            'id_paket' => 'required|exists:paket,id_paket',
-            'qty' => 'required|integer',
-            'subtotal' => 'required|integer',
-        ]);
-
-        $detailTransaksi = DetailTransaksi::findOrFail($id);
-        $detailTransaksi->update($request->all());
-        return $detailTransaksi;
+        $detailTransaksi = DetailTransaksi::find($id);
+        if ($detailTransaksi) {
+            $detailTransaksi->update($request->all());
+            return response()->json([
+                'success' => true,
+                'message' => 'Detail Transaksi berhasil diperbarui',
+                'data' => $detailTransaksi
+            ]);
+        }
+        return response()->json([
+            'success' => false,
+            'message' => 'Detail Transaksi tidak ditemukan'
+        ], 404);
     }
 
     public function destroy($id)
     {
-        // Hapus detail transaksi
-        return DetailTransaksi::destroy($id);
+        $detailTransaksi = DetailTransaksi::find($id);
+        if ($detailTransaksi) {
+            $detailTransaksi->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'Detail Transaksi berhasil dihapus'
+            ]);
+        }
+        return response()->json([
+            'success' => false,
+            'message' => 'Detail Transaksi tidak ditemukan'
+        ], 404);
     }
 }
